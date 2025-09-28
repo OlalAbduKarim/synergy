@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 import { JobMatch } from '../types';
 import JobMatchCard from './JobMatchCard';
@@ -29,14 +30,14 @@ const SavedJobs: React.FC<SavedJobsProps> = ({ savedJobs, onToggleSave, appliedJ
   return (
     <div>
       <div className="mb-8">
-        <h2 className="text-3xl font-bold text-slate-800 flex items-center">
+        <h2 className="text-2xl sm:text-3xl font-bold text-slate-800 flex items-center">
           <BookmarkIcon className="w-8 h-8 mr-3 text-primary" /> Saved Jobs ({savedJobs.length})
         </h2>
         <p className="text-slate-600 mt-1">
           Here are the opportunities you've saved for later.
         </p>
       </div>
-      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
         {savedJobs.map(job => (
           <JobMatchCard
             key={job.id}

@@ -30,18 +30,18 @@ const EmployerDashboard: React.FC<EmployerDashboardProps> = ({ postedJobs, onVie
   return (
     <div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard icon={<BriefcaseIcon className="w-6 h-6 text-white"/>} label="Active Job Listings" value={postedJobs.length} color="bg-primary" />
-        <StatCard icon={<EyeIcon className="w-6 h-6 text-white"/>} label="Total Job Views" value={totalViews.toLocaleString()} color="bg-indigo-500" />
+        <StatCard icon={<BriefcaseIcon className="w-6 h-6 text-white"/>} label="Active Listings" value={postedJobs.length} color="bg-primary" />
+        <StatCard icon={<EyeIcon className="w-6 h-6 text-white"/>} label="Total Views" value={totalViews.toLocaleString()} color="bg-indigo-500" />
         <StatCard icon={<UsersIcon className="w-6 h-6 text-white"/>} label="Total Applications" value={totalApplications.toLocaleString()} color="bg-success" />
         <StatCard icon={<ChartBarIcon className="w-6 h-6 text-white"/>} label="Time-to-Hire" value="12 Days" color="bg-energy" />
       </div>
 
       <div className="mt-8">
-        <div className="flex justify-between items-center mb-4">
+        <div className="flex flex-col sm:flex-row justify-between sm:items-center mb-4 gap-4">
           <h2 className="text-2xl font-bold text-slate-800">Your Job Listings</h2>
           <button
             onClick={() => setView('postJob')}
-            className="flex items-center bg-primary text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors"
+            className="flex items-center justify-center bg-primary text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors"
           >
             <PlusCircleIcon className="w-5 h-5 mr-2" />
             Post New Job
@@ -51,14 +51,14 @@ const EmployerDashboard: React.FC<EmployerDashboardProps> = ({ postedJobs, onVie
         {postedJobs.length > 0 ? (
           <div className="space-y-4">
             {postedJobs.map(job => (
-              <div key={job.id} className="bg-white p-6 rounded-xl shadow-lg border border-slate-200 flex items-center justify-between">
-                <div>
-                  <h3 className="text-xl font-bold text-slate-800">{job.title}</h3>
-                  <p className="text-slate-500">{job.company} - {job.location}</p>
+              <div key={job.id} className="bg-white p-4 sm:p-6 rounded-xl shadow-lg border border-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="flex-grow">
+                  <h3 className="text-lg sm:text-xl font-bold text-slate-800">{job.title}</h3>
+                  <p className="text-slate-500 text-sm sm:text-base">{job.company} - {job.location}</p>
                 </div>
                 <button
                   onClick={() => onViewCandidates(job)}
-                  className="bg-success text-white font-semibold py-2.5 px-5 rounded-lg hover:bg-emerald-600 transition-colors"
+                  className="w-full sm:w-auto bg-success text-white font-semibold py-2.5 px-5 rounded-lg hover:bg-emerald-600 transition-colors shrink-0"
                 >
                   Find Candidates
                 </button>

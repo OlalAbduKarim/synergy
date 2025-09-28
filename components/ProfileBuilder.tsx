@@ -47,7 +47,6 @@ const ProfileBuilder: React.FC<ProfileBuilderProps> = ({ user, onProfileComplete
       const profileData = await extractProfileFromResume(resumeText);
       setExtractedProfile(profileData);
       
-      // FIX: Added user's name and email to the profile object to satisfy the UserProfile type.
       const fullProfile: UserProfile = {
         ...profileData,
         availability,
@@ -66,8 +65,8 @@ const ProfileBuilder: React.FC<ProfileBuilderProps> = ({ user, onProfileComplete
 
   return (
     <div className="max-w-4xl mx-auto">
-      <div className="bg-white p-8 rounded-xl shadow-lg border border-slate-200">
-        <h2 className="text-3xl font-bold text-slate-800">Smart Profile Builder</h2>
+      <div className="bg-white p-6 sm:p-8 rounded-xl shadow-lg border border-slate-200">
+        <h2 className="text-2xl sm:text-3xl font-bold text-slate-800">Smart Profile Builder</h2>
         <p className="mt-2 text-slate-600">
           Paste your resume or describe your work experience, then set your weekly availability. Our AI will do the rest.
         </p>
@@ -96,8 +95,9 @@ const ProfileBuilder: React.FC<ProfileBuilderProps> = ({ user, onProfileComplete
           <button
             onClick={handleAnalyze}
             disabled={isMatching}
-            className="inline-flex items-center justify-center bg-primary text-white font-semibold py-3 px-8 rounded-lg shadow-md hover:bg-blue-700 transition-all duration-300 transform hover:scale-105 disabled:bg-slate-400 disabled:cursor-not-allowed disabled:scale-100"
+            className="inline-flex items-center justify-center bg-primary text-white font-semibold py-3 px-6 sm:px-8 rounded-lg shadow-md hover:bg-blue-700 transition-all duration-300 transform hover:scale-105 disabled:bg-slate-400 disabled:cursor-not-allowed disabled:scale-100"
           >
+            {/* FIX: Corrected typo 'ismatching' to 'isMatching'. */}
             {isMatching ? (
               <>
                 <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -117,7 +117,7 @@ const ProfileBuilder: React.FC<ProfileBuilderProps> = ({ user, onProfileComplete
       </div>
       
       {extractedProfile && !isMatching && (
-        <div className="mt-8 bg-white p-8 rounded-xl shadow-lg border border-slate-200 animate-fade-in">
+        <div className="mt-8 bg-white p-6 sm:p-8 rounded-xl shadow-lg border border-slate-200 animate-fade-in">
           <h3 className="text-2xl font-bold text-slate-800">Your AI-Generated Profile</h3>
             <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>

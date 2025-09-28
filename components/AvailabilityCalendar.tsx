@@ -51,8 +51,8 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({ availabilit
             {daysOfWeek.map(day => {
                 const daySchedule = availability.schedule[day];
                 return (
-                    <div key={day} className="grid grid-cols-1 md:grid-cols-4 items-center gap-3 p-2 rounded-md hover:bg-slate-100">
-                        <div className="md:col-span-1 flex items-center">
+                    <div key={day} className="grid grid-cols-1 sm:grid-cols-4 items-center gap-3 p-2 rounded-md hover:bg-slate-100">
+                        <div className="sm:col-span-1 flex items-center">
                             <input
                                 type="checkbox"
                                 id={`check-${day}`}
@@ -63,7 +63,7 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({ availabilit
                             />
                             <label htmlFor={`check-${day}`} className="ml-3 block text-sm font-medium text-slate-700">{day}</label>
                         </div>
-                        <div className="md:col-span-3 flex items-center gap-2">
+                        <div className="sm:col-span-3 flex items-center gap-2">
                            <label htmlFor={`start-${day}`} className="text-sm text-slate-500">From</label>
                            <input
                             type="time"

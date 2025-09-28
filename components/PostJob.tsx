@@ -39,8 +39,8 @@ const PostJob: React.FC<PostJobProps> = ({ onJobPost }) => {
 
   return (
     <div className="max-w-4xl mx-auto">
-      <div className="bg-white p-8 rounded-xl shadow-lg border border-slate-200">
-        <h2 className="text-3xl font-bold text-slate-800">Post a New Job</h2>
+      <div className="bg-white p-6 sm:p-8 rounded-xl shadow-lg border border-slate-200">
+        <h2 className="text-2xl sm:text-3xl font-bold text-slate-800">Post a New Job</h2>
         <p className="mt-2 text-slate-600">
           Fill out the details below to find the best candidates with our AI matching engine.
         </p>

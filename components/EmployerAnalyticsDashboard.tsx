@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 import { Job } from '../types';
 import { EyeIcon, UsersIcon, ChartBarIcon } from './icons/Icons';
@@ -45,12 +46,12 @@ const EmployerAnalyticsDashboard: React.FC<{ postedJobs: Job[] }> = ({ postedJob
     const avgScoreSum = postedJobs.reduce((sum, job) => sum + job.analytics.avgMatchScore, 0);
     const overallAvgMatchScore = postedJobs.length > 0 ? Math.round(avgScoreSum / postedJobs.length) : 0;
 
-    const maxViews = Math.max(...postedJobs.map(j => j.analytics.views));
-    const maxApps = Math.max(...postedJobs.map(j => j.analytics.applications));
+    const maxViews = Math.max(...postedJobs.map(j => j.analytics.views), 1);
+    const maxApps = Math.max(...postedJobs.map(j => j.analytics.applications), 1);
 
     return (
         <div>
-            <h2 className="text-3xl font-bold text-slate-800 mb-6">Job Postings Analytics</h2>
+            <h2 className="text-2xl sm:text-3xl font-bold text-slate-800 mb-6">Job Postings Analytics</h2>
 
             {/* Aggregate Stats */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -63,7 +64,7 @@ const EmployerAnalyticsDashboard: React.FC<{ postedJobs: Job[] }> = ({ postedJob
             <div className="mt-10">
                 <h3 className="text-2xl font-bold text-slate-800 mb-4">Performance by Job</h3>
                 <div className="bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden">
-                    <div className="space-y-4 p-6">
+                    <div className="space-y-4 p-4 sm:p-6">
                        {postedJobs.map(job => (
                            <div key={job.id} className="p-4 rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors">
                                <h4 className="font-bold text-lg text-slate-800">{job.title}</h4>

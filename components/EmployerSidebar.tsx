@@ -19,7 +19,7 @@ const EmployerSidebar: React.FC<EmployerSidebarProps> = ({ currentView, setView 
   ];
 
   return (
-    <div className="w-64 bg-white border-r border-slate-200 flex flex-col">
+    <div className="w-64 bg-white border-r border-slate-200 flex-col hidden lg:flex">
       <div className="flex items-center justify-center h-20 border-b border-slate-200">
         <div className="flex items-center space-x-2">
             <LogoIcon />

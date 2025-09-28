@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 import { JobMatch } from '../types';
 import { BriefcaseIcon, LocationIcon, SparklesIcon, BookmarkIcon, CheckCircleIcon } from './icons/Icons';
@@ -59,11 +60,11 @@ const JobMatchCard: React.FC<JobMatchCardProps> = ({ match, isSaved, onToggleSav
                     <p className="text-slate-600 mt-2 text-sm">{match.explanation}</p>
                 </div>
             </div>
-            <div className="mt-6 flex items-center space-x-3 shrink-0">
+            <div className="mt-6 flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-3 shrink-0">
                 <button 
                     onClick={() => onApply(match)}
                     disabled={isApplied}
-                    className="flex-1 flex items-center justify-center bg-primary text-white font-semibold py-2.5 px-4 rounded-lg hover:bg-blue-700 transition-colors disabled:bg-slate-400 disabled:cursor-not-allowed"
+                    className="w-full flex items-center justify-center bg-primary text-white font-semibold py-2.5 px-4 rounded-lg hover:bg-blue-700 transition-colors disabled:bg-slate-400 disabled:cursor-not-allowed"
                 >
                     {isApplied ? (
                         <>
@@ -76,7 +77,7 @@ const JobMatchCard: React.FC<JobMatchCardProps> = ({ match, isSaved, onToggleSav
                 </button>
                 <button 
                     onClick={() => onToggleSave(match)}
-                    className={`flex-1 flex items-center justify-center font-semibold py-2.5 px-4 rounded-lg transition-colors ${
+                    className={`w-full flex items-center justify-center font-semibold py-2.5 px-4 rounded-lg transition-colors ${
                         isSaved 
                         ? 'bg-emerald-100 text-success hover:bg-emerald-200' 
                         : 'bg-slate-100 text-slate-700 hover:bg-slate-200'

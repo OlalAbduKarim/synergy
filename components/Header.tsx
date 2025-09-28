@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { User } from '../types';
-import { BellIcon, ChevronDownIcon, LogoutIcon } from './icons/Icons';
+import { BellIcon, LogoutIcon, LogoIcon } from './icons/Icons';
 
 interface HeaderProps {
     user: User;
@@ -12,12 +12,16 @@ const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
   const roleDisplayName = user.role === 'JOB_SEEKER' ? 'Job Seeker' : 'Employer';
   
   return (
-    <header className="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-8 shrink-0">
-      <div>
+    <header className="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-4 sm:px-8 shrink-0">
+      <div className="flex items-center space-x-2 lg:hidden">
+         <LogoIcon />
+         <h1 className="text-xl font-bold text-slate-800">Synergy</h1>
+      </div>
+      <div className="hidden lg:block">
         <h2 className="text-2xl font-bold text-slate-800">Welcome Back, {user.name.split(' ')[0]}!</h2>
         <p className="text-slate-500">Here's your personalized {roleDisplayName.toLowerCase()} overview.</p>
       </div>
-      <div className="flex items-center space-x-6">
+      <div className="flex items-center space-x-3 sm:space-x-6">
         <button className="relative text-slate-500 hover:text-primary">
           <BellIcon />
           <span className="absolute -top-1 -right-1 flex h-3 w-3">
@@ -25,7 +29,7 @@ const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
             <span className="relative inline-flex rounded-full h-3 w-3 bg-energy"></span>
           </span>
         </button>
-        <div className="flex items-center space-x-3">
+        <div className="hidden sm:flex items-center space-x-3">
           <img
             className="h-10 w-10 rounded-full object-cover"
             src={`https://i.pravatar.cc/150?u=${user.email}`}
@@ -42,7 +46,7 @@ const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
             title="Logout"
         >
             <LogoutIcon className="w-6 h-6" />
-            <span className="font-medium">Logout</span>
+            <span className="font-medium hidden sm:inline">Logout</span>
         </button>
       </div>
     </header>
