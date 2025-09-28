@@ -1,19 +1,32 @@
-
 import { GoogleGenAI, Type } from "@google/genai";
 import { ExtractedProfileData, UserProfile, Job, JobMatch, CandidateMatch } from '../types';
 import { MOCK_JOBS, MOCK_CANDIDATE_PROFILES } from '../constants';
 
-const API_KEY = process.env.API_KEY;
+// A memoized client instance
+let ai: GoogleGenAI | null = null;
 
-if (!API_KEY) {
-  throw new Error("API_KEY environment variable not set");
+/**
+ * Lazily initializes and returns the GoogleGenAI client.
+ * Throws an error if the API key is not available. This allows the app to load
+ * and only fails when an API call is actually made.
+ */
+function getAiClient(): GoogleGenAI {
+  const API_KEY = process.env.API_KEY;
+  if (!API_KEY) {
+    // This error will now be caught by the UI's try/catch blocks
+    throw new Error("API_KEY environment variable is not set. Please configure it in your deployment environment.");
+  }
+  if (!ai) {
+    ai = new GoogleGenAI({ apiKey: API_KEY });
+  }
+  return ai;
 }
 
-const ai = new GoogleGenAI({ apiKey: API_KEY });
 
 export async function extractProfileFromResume(resumeText: string): Promise<ExtractedProfileData> {
   try {
-    const response = await ai.models.generateContent({
+    const aiClient = getAiClient();
+    const response = await aiClient.models.generateContent({
       model: "gemini-2.5-flash",
       contents: `You are an expert HR recruitment assistant. Analyze the following resume text. Your tasks are to:
 1. Extract the user's professional skills (technical or certified abilities).
@@ -77,7 +90,8 @@ Structure your response in the specified JSON format.`,
     return JSON.parse(jsonText) as ExtractedProfileData;
   } catch (error) {
     console.error("Error extracting profile from resume:", error);
-    throw new Error("Failed to analyze resume with AI. Please try again.");
+    // Re-throw the original error to be caught by the component
+    throw error;
   }
 }
 
@@ -96,10 +110,11 @@ function formatAvailabilityForPrompt(availability: UserProfile['availability']):
 export async function findJobMatches(profile: UserProfile): Promise<JobMatch[]> {
   const matches: JobMatch[] = [];
   const availabilityText = formatAvailabilityForPrompt(profile.availability);
+  const aiClient = getAiClient();
 
   for (const job of MOCK_JOBS) {
     try {
-      const response = await ai.models.generateContent({
+      const response = await aiClient.models.generateContent({
         model: "gemini-2.5-flash",
         contents: `You are an AI job matching algorithm. Based on the provided user profile and the job description, calculate a 'Super Match' score from 0 to 100. Then, provide a detailed explanation for the score. The explanation must specifically mention how the user's professional and informal skills align with the key requirements in the job description and justify why the score was given. Also consider their availability.
         
@@ -154,11 +169,12 @@ Provide your response in the specified JSON format. The explanation should be de
 
 export async function findCandidatesForJob(job: Job): Promise<CandidateMatch[]> {
     const matches: CandidateMatch[] = [];
+    const aiClient = getAiClient();
 
     for (const profile of MOCK_CANDIDATE_PROFILES) {
         try {
             const availabilityText = formatAvailabilityForPrompt(profile.availability);
-            const response = await ai.models.generateContent({
+            const response = await aiClient.models.generateContent({
                 model: "gemini-2.5-flash",
                 contents: `You are an AI recruitment algorithm. Based on the candidate's profile and the job description, calculate a match score from 0 to 100. Then, provide a concise explanation for why this candidate is a good match, focusing on how their skills meet the job's key requirements.
 
