@@ -5,22 +5,39 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Synergy</title>
+    <title>Synergy Platform</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script>
       tailwind.config = {
         theme: {
           extend: {
-            fontFamily: {
-              sans: ['Inter', 'sans-serif'],
-            },
             colors: {
-              primary: '#2563EB', // blue-600
-              success: '#10B981', // emerald-500
-              energy: '#F59E0B', // amber-500
+              'primary': {
+                '50': '#eff6ff',
+                '100': '#dbeafe',
+                '200': '#bfdbfe',
+                '300': '#93c5fd',
+                '400': '#60a5fa',
+                '500': '#3b82f6',
+                '600': '#2563eb',
+                '700': '#1d4ed8',
+                '800': '#1e40af',
+                '900': '#1e3a8a',
+                '950': '#172554',
+              },
+              'neutral': {
+                '50': '#f8fafc',
+                '100': '#f1f5f9',
+                '200': '#e2e8f0',
+                '300': '#cbd5e1',
+                '400': '#94a3b8',
+                '500': '#64748b',
+                '600': '#475569',
+                '700': '#334155',
+                '800': '#1e293b',
+                '900': '#0f172a',
+                '950': '#020617',
+              },
             }
           }
         }
@@ -29,17 +46,26 @@
   <script type="importmap">
 {
   "imports": {
-    "react": "https://aistudiocdn.com/react@^19.1.1",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.1.1/",
-    "react/": "https://aistudiocdn.com/react@^19.1.1/",
-    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.20.0"
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.544.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "tailwind-merge": "https://aistudiocdn.com/tailwind-merge@^3.3.1",
+    "react-hook-form": "https://aistudiocdn.com/react-hook-form@^7.64.0",
+    "react-router-dom": "https://aistudiocdn.com/react-router-dom@^7.9.3",
+    "axios": "https://aistudiocdn.com/axios@^1.12.2",
+    "@tanstack/react-query": "https://aistudiocdn.com/@tanstack/react-query@^5.90.2",
+    "clsx": "https://aistudiocdn.com/clsx@^2.1.1",
+    "recharts": "https://aistudiocdn.com/recharts@^3.2.1",
+    "zustand/": "https://aistudiocdn.com/zustand@^5.0.8/",
+    "zustand": "https://aistudiocdn.com/zustand@^5.0.8"
   }
 }
 </script>
 <link rel="stylesheet" href="/index.css">
 </head>
-  <body class="bg-slate-50">
+  <body class="bg-neutral-50 text-neutral-800">
     <div id="root"></div>
-    <script type="module" src="/index.tsx"></script>
-  </body>
+  <script type="module" src="/index.tsx"></script>
+</body>
 </html>

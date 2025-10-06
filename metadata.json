@@ -1,6 +1,5 @@
-
 {
-  "name": "Synergy",
-  "description": "A sophisticated job matching platform connecting formal and informal workers with global opportunities using AI-driven skill analysis and match scoring.",
+  "name": "Synergy Platform",
+  "description": "An AI-powered employment marketplace connecting top talent with innovative companies. Synergy analyzes skills, experience, and culture fit to create perfect matches, streamlining the hiring process for both candidates and employers.",
   "requestFramePermissions": []
 }
