@@ -1,103 +1,101 @@
 import React from 'react';
-import { ArrowRight } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
 import useAuth from '../../hooks/useAuth';
-import Button from '../../components/ui/Button';
 import Card, { CardContent, CardHeader } from '../../components/ui/Card';
-import Badge from '../../components/ui/Badge';
+import Button from '../../components/ui/Button';
+import Spinner from '../../components/ui/Spinner';
 import SynergyScore from '../../components/jobs/SynergyScore';
-import { Job, ApplicationStatus, WorkType, EmploymentType } from '../../types';
-
-// Mock Data
-// Fix: Added missing 'description' property to mock job objects to satisfy the Job interface.
-const mockJobs: Job[] = [
-    { id: '1', title: 'Senior Frontend Engineer', company: { id: 'c1', name: 'Innovate Inc.' }, location: 'Remote', synergyScore: 95, workType: WorkType.REMOTE, employmentType: EmploymentType.FULL_TIME, description: 'Join our team as a Senior Frontend Engineer.', responsibilities: [], requirements: [], skills: [] },
-    { id: '2', title: 'Product Manager', company: { id: 'c2', name: 'Solutions Co.' }, location: 'New York, NY', synergyScore: 88, workType: WorkType.HYBRID, employmentType: EmploymentType.FULL_TIME, description: 'Lead our product team to new heights.', responsibilities: [], requirements: [], skills: [] },
-    { id: '3', title: 'UX/UI Designer', company: { id: 'c3', name: 'Creative Minds' }, location: 'San Francisco, CA', synergyScore: 82, workType: WorkType.ONSITE, employmentType: EmploymentType.CONTRACT, description: 'Design beautiful and intuitive user experiences.', responsibilities: [], requirements: [], skills: [] },
-];
-
-const mockApplications = [
-    { id: 'a1', jobTitle: 'Senior Frontend Engineer', companyName: 'Innovate Inc.', status: ApplicationStatus.INTERVIEWING },
-    { id: 'a2', jobTitle: 'Data Scientist', companyName: 'DataCorp', status: ApplicationStatus.REVIEWING },
-];
+import { Job } from '../../types';
+import { Briefcase, FileText, CheckSquare } from 'lucide-react';
 
 const CandidateDashboardPage: React.FC = () => {
     const { user } = useAuth();
 
+    // Mock query for recommended jobs
+    const { data: recommendedJobs, isLoading: isLoadingJobs } = useQuery({
+        queryKey: ['recommended-jobs'],
+        queryFn: async () => {
+            await new Promise(res => setTimeout(res, 500)); // Simulate network delay
+            return [
+                { id: 'j1', title: 'Senior Frontend Engineer', company: { id: 'c1', name: 'Innovate Inc.' }, location: 'Remote', synergyScore: 95, workType: 'Remote', employmentType: 'Full-time' },
+                { id: 'j2', title: 'UX/UI Designer', company: { id: 'c2', name: 'Creative Minds' }, location: 'San Francisco, CA', synergyScore: 88, workType: 'Hybrid', employmentType: 'Full-time' },
+                { id: 'j3', title: 'Data Scientist', company: { id: 'c3', name: 'DataCorp' }, location: 'Chicago, IL', synergyScore: 72, workType: 'On-site', employmentType: 'Contract' },
+            ] as any[]; // Using 'as any' to bypass missing properties in mock Job
+        }
+    });
+
+    const stats = {
+        applications: 4,
+        interviews: 1,
+        offers: 0,
+    };
+
     return (
         <div className="space-y-8">
             <div>
-                <h1 className="text-3xl font-bold">Welcome back, {user?.fullName}!</h1>
-                <p className="text-neutral-500">Let's find your next opportunity.</p>
+                <h1 className="text-3xl font-bold">Welcome, {user?.fullName}!</h1>
+                <p className="text-neutral-500">Here's your job search snapshot.</p>
             </div>
-
-            <Card className="bg-primary-600 text-white">
-                <CardContent className="flex items-center justify-between">
-                    <div>
-                        <h3 className="text-lg font-semibold">Your profile is 75% complete!</h3>
-                        <p className="text-primary-200">Complete your profile to get better matches.</p>
-                    </div>
-                    <Button variant='outline' className="bg-white/20 border-white text-white hover:bg-white/30">Complete Profile <ArrowRight className="ml-2 h-4 w-4" /></Button>
-                </CardContent>
-            </Card>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <Card>
-                    <CardContent>
-                        <p className="text-sm text-neutral-500">Applications Submitted</p>
-                        <p className="text-3xl font-bold">12</p>
+                    <CardContent className="flex items-center p-6">
+                        <FileText className="h-8 w-8 text-primary-500" />
+                        <div className="ml-4">
+                            <p className="text-3xl font-bold">{stats.applications}</p>
+                            <p className="text-sm text-neutral-500">Applications Submitted</p>
+                        </div>
                     </CardContent>
                 </Card>
-                 <Card>
-                    <CardContent>
-                        <p className="text-sm text-neutral-500">Interviews Scheduled</p>
-                        <p className="text-3xl font-bold">2</p>
+                <Card>
+                    <CardContent className="flex items-center p-6">
+                        <CheckSquare className="h-8 w-8 text-yellow-500" />
+                        <div className="ml-4">
+                            <p className="text-3xl font-bold">{stats.interviews}</p>
+                            <p className="text-sm text-neutral-500">Interviews Scheduled</p>
+                        </div>
                     </CardContent>
                 </Card>
-                 <Card>
-                    <CardContent>
-                        <p className="text-sm text-neutral-500">Unread Messages</p>
-                        <p className="text-3xl font-bold">5</p>
+                <Card>
+                    <CardContent className="flex items-center p-6">
+                        <Briefcase className="h-8 w-8 text-green-500" />
+                        <div className="ml-4">
+                            <p className="text-3xl font-bold">{stats.offers}</p>
+                            <p className="text-sm text-neutral-500">Job Offers</p>
+                        </div>
                     </CardContent>
                 </Card>
             </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <Card>
-                    <CardHeader>
-                        <h3 className="text-xl font-semibold">Top Matched Jobs</h3>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        {mockJobs.map(job => (
-                            <div key={job.id} className="flex items-center justify-between p-3 rounded-lg hover:bg-neutral-50">
-                                <div className="flex items-center">
-                                    <SynergyScore score={job.synergyScore!} size="md" />
-                                    <div className="ml-4">
-                                        <p className="font-semibold">{job.title}</p>
-                                        <p className="text-sm text-neutral-500">{job.company.name} &middot; {job.location}</p>
+            
+            <Card>
+                <CardHeader>
+                    <h3 className="text-xl font-semibold">Top Job Matches for You</h3>
+                </CardHeader>
+                <CardContent>
+                    {isLoadingJobs ? (
+                        <div className="flex justify-center p-8"><Spinner /></div>
+                    ) : (
+                        <div className="space-y-4">
+                            {recommendedJobs?.map((job: Job) => (
+                                <Link to={`/jobs/${job.id}`} key={job.id} className="block p-4 rounded-lg hover:bg-neutral-50 border border-transparent hover:border-neutral-200 transition-all">
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <p className="font-semibold text-primary-700">{job.title}</p>
+                                            <p className="text-sm text-neutral-600">{job.company.name} &middot; {job.location}</p>
+                                        </div>
+                                        <div className="flex items-center gap-4">
+                                            {job.synergyScore && <SynergyScore score={job.synergyScore} size="md" />}
+                                            <Button size="sm" variant="outline" tabIndex={-1}>View Job</Button>
+                                        </div>
                                     </div>
-                                </div>
-                                <Button size="sm" variant="outline">View</Button>
-                            </div>
-                        ))}
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader>
-                        <h3 className="text-xl font-semibold">Recent Applications</h3>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        {mockApplications.map(app => (
-                            <div key={app.id} className="flex items-center justify-between p-3 rounded-lg hover:bg-neutral-50">
-                                <div>
-                                    <p className="font-semibold">{app.jobTitle}</p>
-                                    <p className="text-sm text-neutral-500">{app.companyName}</p>
-                                </div>
-                                <Badge status={app.status}>{app.status}</Badge>
-                            </div>
-                        ))}
-                    </CardContent>
-                </Card>
-            </div>
+                                </Link>
+                            ))}
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
+
         </div>
     );
 };

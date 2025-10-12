@@ -1,87 +1,104 @@
-import React, { useState } from 'react';
-import { Briefcase, Calendar, Filter } from 'lucide-react';
+import React from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Briefcase, Calendar, Clock } from 'lucide-react';
 import Card, { CardContent } from '../../components/ui/Card';
 import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
-import SynergyScore from '../../components/jobs/SynergyScore';
-import { Application, ApplicationStatus, Job, UserRole, WorkType, EmploymentType, User } from '../../types';
+import Spinner from '../../components/ui/Spinner';
+import { Application, ApplicationStatus } from '../../types';
+import { formatDate } from '../../lib/utils';
+import { getMyApplications, withdrawApplication } from '../../services/applicationService';
 
-const mockUser: User = { id: '1', email: 'test@test.com', fullName: 'John Doe', role: UserRole.CANDIDATE };
-
-const mockApplications: Application[] = [
-    { id: '1', job: { id: 'j1', title: 'Senior Frontend Engineer', company: { id: 'c1', name: 'Innovate Inc.'}, location: 'Remote', workType: WorkType.REMOTE, employmentType: EmploymentType.FULL_TIME, description: '', responsibilities: [], requirements: [], skills: [] }, candidate: mockUser, status: ApplicationStatus.INTERVIEWING, appliedDate: '2023-10-15', synergyScore: 95 },
-    { id: '2', job: { id: 'j2', title: 'Product Manager', company: { id: 'c2', name: 'Solutions Co.'}, location: 'New York, NY', workType: WorkType.HYBRID, employmentType: EmploymentType.FULL_TIME, description: '', responsibilities: [], requirements: [], skills: [] }, candidate: mockUser, status: ApplicationStatus.REVIEWING, appliedDate: '2023-10-12', synergyScore: 88 },
-    { id: '3', job: { id: 'j3', title: 'Data Scientist', company: { id: 'c3', name: 'DataCorp'}, location: 'San Francisco, CA', workType: WorkType.ONSITE, employmentType: EmploymentType.FULL_TIME, description: '', responsibilities: [], requirements: [], skills: [] }, candidate: mockUser, status: ApplicationStatus.SUBMITTED, appliedDate: '2023-10-10', synergyScore: 82 },
-    { id: '4', job: { id: 'j4', title: 'UX Designer', company: { id: 'c4', name: 'Creative Minds'}, location: 'Remote', workType: WorkType.REMOTE, employmentType: EmploymentType.CONTRACT, description: '', responsibilities: [], requirements: [], skills: [] }, candidate: mockUser, status: ApplicationStatus.REJECTED, appliedDate: '2023-09-28', synergyScore: 75 },
-];
-
-const ApplicationCard: React.FC<{ application: Application }> = ({ application }) => (
+const ApplicationCard: React.FC<{ application: Application, onWithdraw: (id: string) => void, isWithdrawing: boolean }> = ({ application, onWithdraw, isWithdrawing }) => (
     <Card className="hover:shadow-md transition-shadow">
         <CardContent className="p-6">
             <div className="flex justify-between items-start">
                 <div>
-                    <h3 className="text-lg font-semibold">{application.job.title}</h3>
-                    <p className="text-sm text-neutral-500">{application.job.company.name}</p>
+                    <h3 className="text-lg font-semibold text-primary-700">{application.job.title}</h3>
+                    <p className="text-neutral-600">{application.job.company.name} &middot; {application.job.location}</p>
                 </div>
                 <Badge status={application.status}>{application.status}</Badge>
             </div>
-            <div className="mt-4 flex items-center justify-between">
-                <div className="flex items-center gap-4 text-sm text-neutral-600">
-                    <span className="flex items-center"><Calendar size={14} className="mr-1" /> Applied on {application.appliedDate}</span>
+            <div className="mt-4 pt-4 border-t border-neutral-200 flex justify-between items-center text-sm text-neutral-500">
+                <div className="flex flex-col sm:flex-row sm:gap-4">
+                    <span className="flex items-center">
+                        <Calendar size={14} className="mr-1.5" />
+                        Applied on {formatDate(application.appliedDate, { year: 'numeric', month: 'long', day: 'numeric' })}
+                    </span>
+                    <span className="flex items-center mt-1 sm:mt-0">
+                        <Clock size={14} className="mr-1.5" />
+                        Last updated on {formatDate(application.lastUpdated, { month: 'long', day: 'numeric' })}
+                    </span>
                 </div>
-                <div className="flex items-center gap-2">
-                    <SynergyScore score={application.synergyScore} size="sm" />
-                    <span className="text-sm font-semibold">{application.synergyScore}</span>
-                </div>
-            </div>
-             <div className="mt-6 flex justify-end gap-2">
-                <Button variant="outline" size="sm">Message Employer</Button>
-                <Button size="sm">View Details</Button>
+                {[ApplicationStatus.SUBMITTED, ApplicationStatus.REVIEWING, ApplicationStatus.INTERVIEWING].includes(application.status) && (
+                     <Button 
+                        variant="danger" 
+                        size="sm" 
+                        onClick={() => onWithdraw(application.id)}
+                        disabled={isWithdrawing}
+                     >
+                        {isWithdrawing ? 'Withdrawing...' : 'Withdraw'}
+                     </Button>
+                )}
             </div>
         </CardContent>
     </Card>
 );
 
 const MyApplicationsPage: React.FC = () => {
-    const [statusFilter, setStatusFilter] = useState<ApplicationStatus | 'All'>('All');
+    const queryClient = useQueryClient();
 
-    const filteredApplications = statusFilter === 'All' 
-        ? mockApplications 
-        : mockApplications.filter(app => app.status === statusFilter);
-    
-    const statuses: ('All' | ApplicationStatus)[] = ['All', ...Object.values(ApplicationStatus)];
+    const { data: applications, isLoading, error } = useQuery<Application[]>({
+        queryKey: ['my-applications'],
+        queryFn: getMyApplications,
+    });
+
+    const withdrawMutation = useMutation({
+        mutationFn: withdrawApplication,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['my-applications'] });
+        },
+        onError: (err: any) => {
+            alert(`Error: ${err.response?.data?.error || 'Could not withdraw application.'}`);
+        }
+    });
+
+    const handleWithdraw = (applicationId: string) => {
+        if (window.confirm('Are you sure you want to withdraw this application? This action cannot be undone.')) {
+            withdrawMutation.mutate(applicationId);
+        }
+    };
 
     return (
         <div>
-            <h1 className="text-3xl font-bold mb-6">My Applications</h1>
-            
             <div className="mb-6">
-                <div className="flex items-center gap-2 overflow-x-auto pb-2">
-                    {statuses.map(status => (
-                        <Button
-                            key={status}
-                            variant={statusFilter === status ? 'primary' : 'outline'}
-                            size="sm"
-                            onClick={() => setStatusFilter(status)}
-                        >
-                            {status}
-                        </Button>
+                <h1 className="text-3xl font-bold">My Applications</h1>
+                <p className="text-neutral-500 mt-1">Track the status of all your job applications.</p>
+            </div>
+            {isLoading ? (
+                 <div className="flex justify-center py-12"><Spinner size="lg" /></div>
+            ) : error ? (
+                 <p className="text-red-500">Failed to load applications.</p>
+            ) : applications && applications.length > 0 ? (
+                <div className="space-y-6">
+                    {applications.map(app => (
+                        <ApplicationCard 
+                            key={app.id} 
+                            application={app} 
+                            onWithdraw={handleWithdraw}
+                            isWithdrawing={withdrawMutation.isPending && withdrawMutation.variables === app.id}
+                        />
                     ))}
                 </div>
-            </div>
-
-            <div className="space-y-6">
-                {filteredApplications.length > 0 ? (
-                    filteredApplications.map(app => <ApplicationCard key={app.id} application={app} />)
-                ) : (
-                    <Card>
-                        <CardContent className="text-center text-neutral-500 py-12">
-                            <Briefcase size={48} className="mx-auto text-neutral-300 mb-4" />
-                            <p>No applications found for this filter.</p>
-                        </CardContent>
-                    </Card>
-                )}
-            </div>
+            ) : (
+                <Card>
+                    <CardContent className="text-center py-12">
+                        <Briefcase className="mx-auto h-12 w-12 text-neutral-400" />
+                        <h3 className="mt-2 text-xl font-semibold">No Applications Yet</h3>
+                        <p className="mt-1 text-neutral-500">You haven't applied for any jobs yet. Start searching!</p>
+                    </CardContent>
+                </Card>
+            )}
         </div>
     );
 };

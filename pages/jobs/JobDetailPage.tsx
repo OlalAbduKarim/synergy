@@ -1,128 +1,152 @@
-
 import React from 'react';
-import { useParams } from 'react-router-dom';
-import { MapPin, Briefcase, DollarSign, CheckCircle, XCircle } from 'lucide-react';
+import { useParams, Link } from 'react-router-dom';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { ArrowLeft, MapPin, Briefcase, Clock, Check } from 'lucide-react';
+import useAuth from '../../hooks/useAuth';
+import { submitApplication } from '../../services/applicationService';
 import Card, { CardContent, CardHeader } from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
+import Spinner from '../../components/ui/Spinner';
 import Badge from '../../components/ui/Badge';
 import SynergyScore from '../../components/jobs/SynergyScore';
-import { Job, WorkType, EmploymentType, UserRole } from '../../types';
-import useAuth from '../../hooks/useAuth';
+import { Job, WorkType, EmploymentType, Skill, SkillCategory, UserRole } from '../../types';
 
-// Mock Data
-const mockJob: Job = { id: '1', title: 'Senior Frontend Engineer', company: { id: 'c1', name: 'Innovate Inc.' }, location: 'Remote', workType: WorkType.REMOTE, employmentType: EmploymentType.FULL_TIME, salaryMin: 120000, salaryMax: 150000, skills: [{id:'s1', name: 'React', proficiency: 5}, {id:'s2', name: 'TypeScript', proficiency: 5}, {id:'s3', name: 'Node.js', proficiency: 4}, {id:'s12', name: 'GraphQL', proficiency: 3}], synergyScore: 95, 
-description: "We are seeking a passionate Senior Frontend Engineer to join our dynamic team. You will be responsible for building and maintaining our next-generation user interfaces, ensuring they are performant, accessible, and delightful to use.",
-responsibilities: ["Develop new user-facing features using React.js", "Build reusable components and front-end libraries for future use", "Translate designs and wireframes into high-quality code", "Optimize components for maximum performance across a vast array of web-capable devices and browsers"], 
-requirements: ["Strong proficiency in JavaScript, including DOM manipulation and the JavaScript object model", "Thorough understanding of React.js and its core principles", "Experience with popular React.js workflows (such as Flux or Redux)", "Familiarity with newer specifications of EcmaScript"] };
-
-const SynergyBreakdown: React.FC = () => (
-    <Card>
-        <CardHeader><h3 className="text-xl font-semibold">Your Synergy Breakdown</h3></CardHeader>
-        <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-                <p>Skills Match</p>
-                <div className="flex items-center">
-                    <p className="font-semibold mr-2">98%</p>
-                    <div className="w-32 h-2 bg-neutral-200 rounded-full"><div className="h-2 bg-green-500 rounded-full" style={{width: '98%'}}></div></div>
-                </div>
-            </div>
-             <div className="pl-4 text-sm space-y-1">
-                <p className="flex items-center text-green-600"><CheckCircle size={14} className="mr-2" /> React, TypeScript</p>
-                <p className="flex items-center text-red-600"><XCircle size={14} className="mr-2" /> GraphQL (Missing)</p>
-            </div>
-             <div className="flex items-center justify-between">
-                <p>Experience Match</p>
-                <div className="flex items-center">
-                    <p className="font-semibold mr-2">90%</p>
-                    <div className="w-32 h-2 bg-neutral-200 rounded-full"><div className="h-2 bg-green-500 rounded-full" style={{width: '90%'}}></div></div>
-                </div>
-            </div>
-            <div className="flex items-center justify-between">
-                <p>Salary Alignment</p>
-                <div className="flex items-center">
-                    <p className="font-semibold mr-2">Perfect</p>
-                     <div className="w-32 h-2 bg-neutral-200 rounded-full"><div className="h-2 bg-green-500 rounded-full" style={{width: '100%'}}></div></div>
-                </div>
-            </div>
-        </CardContent>
-    </Card>
-);
+// Mock data for a single job
+const mockJob: Job = {
+    id: 'j1',
+    title: 'Senior Frontend Engineer',
+    company: { id: 'c1', name: 'Innovate Inc.' },
+    location: 'Remote',
+    workType: WorkType.REMOTE,
+    employmentType: EmploymentType.FULL_TIME,
+    synergyScore: 95,
+    description: 'We are seeking a passionate Senior Frontend Engineer to join our dynamic team. You will be responsible for building and maintaining our user-facing applications, collaborating with designers and backend engineers to create a seamless user experience.',
+    responsibilities: [
+        'Develop new user-facing features using React.js',
+        'Build reusable components and front-end libraries for future use',
+        'Translate designs and wireframes into high-quality code',
+        'Optimize components for maximum performance across a vast array of web-capable devices and browsers',
+    ],
+    requirements: [
+        'Strong proficiency in JavaScript, including DOM manipulation and the JavaScript object model',
+        'Thorough understanding of React.js and its core principles',
+        'Experience with popular React.js workflows (such as Flux or Redux)',
+        'Familiarity with newer specifications of EcmaScript',
+        'Experience with data structure libraries (e.g., Immutable.js)',
+        'Familiarity with RESTful APIs',
+    ],
+    skills: [
+        { id: 's1', name: 'React', category: SkillCategory.FRAMEWORK, proficiency: 5 },
+        { id: 's2', name: 'TypeScript', category: SkillCategory.LANGUAGE, proficiency: 4 },
+        { id: 's3', name: 'Redux', category: SkillCategory.TOOL, proficiency: 4 },
+        { id: 's4', name: 'GraphQL', category: SkillCategory.TOOL, proficiency: 3 },
+    ],
+};
 
 
 const JobDetailPage: React.FC = () => {
-    const { jobId } = useParams();
+    const { jobId } = useParams<{ jobId: string }>();
     const { user } = useAuth();
-    const job = mockJob; // In real app: useQuery to fetch job by ID
+    const queryClient = useQueryClient();
+
+    // Mock query for a single job
+    const { data: job, isLoading } = useQuery({
+        queryKey: ['job', jobId],
+        queryFn: async (): Promise<Job> => {
+            await new Promise(res => setTimeout(res, 500));
+            return { ...mockJob, id: jobId || 'j1' };
+        },
+        enabled: !!jobId,
+    });
+    
+    const applyMutation = useMutation({
+        mutationFn: () => submitApplication(jobId!),
+        onSuccess: () => {
+            alert('Application submitted successfully!');
+            queryClient.invalidateQueries({ queryKey: ['my-applications'] });
+        },
+        onError: (error: any) => {
+             alert(`Error: ${error.response?.data?.error || 'Could not submit application.'}`);
+        }
+    });
+
+    if (isLoading) return <div className="flex justify-center items-center h-64"><Spinner size="lg" /></div>;
+    if (!job) return <div className="text-center">Job not found.</div>;
+    
+    const renderActionButtons = () => {
+        if (user?.role === UserRole.CANDIDATE) {
+             return (
+                <Button 
+                    className="w-full mt-4" 
+                    onClick={() => applyMutation.mutate()} 
+                    disabled={applyMutation.isPending}
+                >
+                    {applyMutation.isPending ? <><Spinner size="sm" className="mr-2"/> Submitting...</> : 'Apply Now'}
+                </Button>
+            );
+        }
+        if (user?.role === UserRole.EMPLOYER) {
+             return (
+                <Link to={`/employer/jobs/${job.id}/applications`} className="w-full">
+                    <Button className="w-full mt-4">View Applications</Button>
+                </Link>
+            );
+        }
+        return null;
+    }
 
     return (
-        <div className="flex flex-col lg:flex-row gap-8">
-            <div className="lg:w-2/3 space-y-6">
-                <Card>
-                    <CardContent>
-                        <p className="text-neutral-500">{job.company.name}</p>
-                        <h1 className="text-4xl font-bold mt-1">{job.title}</h1>
-                        <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-neutral-600">
-                           <span className="flex items-center"><MapPin size={16} className="mr-2" /> {job.location}</span>
-                           <span className="flex items-center"><Briefcase size={16} className="mr-2" /> {job.employmentType}</span>
-                           {job.salaryMin && <span className="flex items-center"><DollarSign size={16} className="mr-2" /> ${job.salaryMin/1000}k - ${job.salaryMax/1000}k</span>}
-                        </div>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardContent>
-                        <h2 className="text-xl font-semibold mb-4">Job Description</h2>
-                        <p className="text-neutral-600 leading-relaxed">{job.description}</p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardContent>
-                        <h2 className="text-xl font-semibold mb-4">Responsibilities</h2>
-                        <ul className="list-disc pl-5 space-y-2 text-neutral-600">
-                            {job.responsibilities.map((item, i) => <li key={i}>{item}</li>)}
-                        </ul>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardContent>
-                        <h2 className="text-xl font-semibold mb-4">Requirements</h2>
-                        <ul className="list-disc pl-5 space-y-2 text-neutral-600">
-                           {job.requirements.map((item, i) => <li key={i}>{item}</li>)}
-                        </ul>
-                    </CardContent>
-                </Card>
-                 <Card>
-                    <CardContent>
-                        <h2 className="text-xl font-semibold mb-4">Required Skills</h2>
-                         <div className="flex flex-wrap gap-2">
-                            {job.skills.map(skill => <Badge key={skill.id} variant="primary">{skill.name}</Badge>)}
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
-            <div className="lg:w-1/3 space-y-6">
-                 <Card className="text-center sticky top-24">
-                     <CardContent>
-                        <h3 className="text-lg font-semibold">Your Synergy Score</h3>
-                        <SynergyScore score={job.synergyScore!} size="lg" className="my-4" />
-                        <p className="text-sm text-neutral-500 mb-4">This score reflects how well your profile aligns with the job requirements.</p>
-                        {user?.role === UserRole.CANDIDATE && (
-                            <Button className="w-full">Apply Now</Button>
-                        )}
-                        {user?.role === UserRole.EMPLOYER && (
-                             <div className="flex gap-2">
-                                <Button className="w-full" variant="outline">Edit Job</Button>
-                                <Button className="w-full">View Applications (25)</Button>
+        <div className="max-w-4xl mx-auto">
+            <Link to="/jobs" className="inline-flex items-center text-sm font-medium text-neutral-600 hover:text-primary-600 mb-4">
+                <ArrowLeft size={16} className="mr-2" /> Back to Jobs
+            </Link>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="lg:col-span-2 space-y-6">
+                    <Card>
+                        <CardHeader>
+                            <h1 className="text-3xl font-bold">{job.title}</h1>
+                            <p className="text-xl text-neutral-600">{job.company.name}</p>
+                            <div className="flex items-center text-sm text-neutral-500 mt-2 gap-4">
+                                <span className="flex items-center"><MapPin size={14} className="mr-1.5" /> {job.location}</span>
+                                <span className="flex items-center"><Briefcase size={14} className="mr-1.5" /> {job.employmentType}</span>
+                                <span className="flex items-center"><Clock size={14} className="mr-1.5" /> {job.workType}</span>
                             </div>
-                        )}
-                    </CardContent>
-                </Card>
-                {user?.role === UserRole.CANDIDATE && <SynergyBreakdown />}
-                <Card>
-                     <CardHeader><h3 className="text-xl font-semibold">About {job.company.name}</h3></CardHeader>
-                     <CardContent>
-                        <p className="text-sm text-neutral-600">Innovate Inc. is a leading technology company revolutionizing the way people interact with software. We foster a culture of collaboration, innovation, and continuous learning.</p>
-                    </CardContent>
-                </Card>
+                        </CardHeader>
+                        <CardContent>
+                            <h3 className="text-lg font-semibold border-b pb-2 mb-2">Job Description</h3>
+                            <p className="text-neutral-600">{job.description}</p>
+                            
+                            <h3 className="text-lg font-semibold border-b pb-2 mt-6 mb-2">Responsibilities</h3>
+                            <ul className="list-none space-y-2">
+                                {job.responsibilities.map((item, i) => <li key={i} className="flex items-start"><Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-1" /> {item}</li>)}
+                            </ul>
+
+                            <h3 className="text-lg font-semibold border-b pb-2 mt-6 mb-2">Requirements</h3>
+                            <ul className="list-none space-y-2">
+                                {job.requirements.map((item, i) => <li key={i} className="flex items-start"><Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-1" /> {item}</li>)}
+                            </ul>
+                        </CardContent>
+                    </Card>
+                </div>
+                <div className="space-y-6">
+                    <Card>
+                        <CardHeader className="text-center">
+                            <h3 className="text-lg font-semibold">Synergy Score</h3>
+                        </CardHeader>
+                        <CardContent className="flex flex-col items-center">
+                            {job.synergyScore && <SynergyScore score={job.synergyScore} size="lg" />}
+                            <p className="text-center text-sm text-neutral-500 mt-2">Your profile is a strong match for this role.</p>
+                            {renderActionButtons()}
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader><h3 className="text-lg font-semibold">Required Skills</h3></CardHeader>
+                        <CardContent className="flex flex-wrap gap-2">
+                            {job.skills.map(skill => <Badge key={skill.id} variant="primary">{skill.name}</Badge>)}
+                        </CardContent>
+                    </Card>
+                </div>
             </div>
         </div>
     );

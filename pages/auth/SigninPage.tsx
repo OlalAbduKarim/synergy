@@ -3,47 +3,33 @@ import React from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
 import { Briefcase, Mail, Lock } from 'lucide-react';
+import { useMutation } from '@tanstack/react-query';
 import useAuth from '../../hooks/useAuth';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
-import { User, UserRole } from '../../types';
-
-// Mock API call
-const mockSignIn = async (data: any): Promise<{ user: User, token: string }> => {
-    console.log("Signing in with", data);
-    await new Promise(res => setTimeout(res, 1000));
-    // In a real app, this would be a call to your backend.
-    // The role would be determined by the server.
-    const role = data.email.includes('employer') ? UserRole.EMPLOYER : UserRole.CANDIDATE;
-    return {
-        user: {
-            id: '1',
-            email: data.email,
-            fullName: role === UserRole.CANDIDATE ? 'John Doe' : 'ACME Corp',
-            role: role,
-        },
-        token: 'mock-jwt-token'
-    };
-};
-
+import { UserRole } from '../../types';
+import { signIn } from '../../services/authService';
+import Spinner from '../../components/ui/Spinner';
 
 const SigninPage: React.FC = () => {
-    const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm();
+    const { register, handleSubmit, formState: { errors } } = useForm();
     const { login } = useAuth();
     const navigate = useNavigate();
-    const [apiError, setApiError] = React.useState<string | null>(null);
 
-    const onSubmit = async (data: any) => {
-        setApiError(null);
-        try {
-            const { user, token } = await mockSignIn(data);
+    const mutation = useMutation({
+        mutationFn: signIn,
+        onSuccess: ({ user, token }) => {
             login(user, token);
             const redirectPath = user.role === UserRole.CANDIDATE ? '/candidate/dashboard' : '/employer/dashboard';
             navigate(redirectPath);
-        } catch (error) {
-            setApiError("Invalid email or password. Please try again.");
-        }
+        },
+    });
+
+    const onSubmit = (data: any) => {
+        mutation.mutate(data);
     };
+    
+    const apiError = mutation.error ? (mutation.error as any).response?.data?.error || "Invalid email or password. Please try again." : null;
 
     return (
         <div className="min-h-screen bg-neutral-50 flex items-center justify-center p-4">
@@ -89,8 +75,8 @@ const SigninPage: React.FC = () => {
                             {errors.password && <p className="mt-1 text-sm text-red-500">{errors.password.message as string}</p>}
                         </div>
                         
-                        <Button type="submit" className="w-full" disabled={isSubmitting}>
-                            {isSubmitting ? 'Signing In...' : 'Sign In'}
+                        <Button type="submit" className="w-full" disabled={mutation.isPending}>
+                            {mutation.isPending ? <><Spinner size="sm" className="mr-2" /> Signing In...</> : 'Sign In'}
                         </Button>
                     </form>
                      <p className="mt-6 text-center text-sm text-neutral-500">

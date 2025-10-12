@@ -1,18 +1,41 @@
-
 import React from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
-import { Briefcase, Building, LogOut, MessageSquare, Bell, User as UserIcon } from 'lucide-react';
+import { Briefcase, LogOut, MessageSquare, Bell, User as UserIcon } from 'lucide-react';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import useAuth from '../../hooks/useAuth';
 import { UserRole } from '../../types';
 import Button from '../ui/Button';
+import { signOut } from '../../services/authService';
+import { getUnreadCount } from '../../services/notificationService';
 
 const Header: React.FC = () => {
     const { isAuthenticated, user, logout } = useAuth();
     const navigate = useNavigate();
 
+    const { data: unreadData } = useQuery({
+        queryKey: ['unread-notifications-count'],
+        queryFn: getUnreadCount,
+        enabled: isAuthenticated,
+        refetchInterval: 30000, // Poll every 30 seconds
+        staleTime: 30000,
+    });
+    const unreadCount = unreadData?.count || 0;
+
+    const mutation = useMutation({
+        mutationFn: signOut,
+        onSuccess: () => {
+            logout();
+            navigate('/signin');
+        },
+        onError: (error) => {
+            console.error("Sign out failed", error);
+            logout();
+            navigate('/signin');
+        }
+    });
+
     const handleLogout = () => {
-        logout();
-        navigate('/signin');
+        mutation.mutate();
     };
 
     const candidateNavLinks = [
@@ -60,10 +83,11 @@ const Header: React.FC = () => {
                             <div className="flex items-center space-x-4">
                                 <Link to="/notifications" className="text-neutral-500 hover:text-neutral-900 relative">
                                     <Bell size={20} />
-                                    <span className="absolute -top-1 -right-1 flex h-3 w-3">
-                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                                        <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
-                                    </span>
+                                    {unreadCount > 0 && (
+                                         <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-white text-xs font-bold">
+                                            {unreadCount > 9 ? '9+' : unreadCount}
+                                        </span>
+                                    )}
                                 </Link>
                                 <Link to="/messages" className="text-neutral-500 hover:text-neutral-900">
                                     <MessageSquare size={20} />
@@ -82,7 +106,7 @@ const Header: React.FC = () => {
                                         <Link to={user?.role === UserRole.CANDIDATE ? "/candidate/profile" : "/employer/profile"} className="flex items-center w-full text-left px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-100">
                                             <UserIcon size={16} className="mr-2" /> Profile
                                         </Link>
-                                        <button onClick={handleLogout} className="flex items-center w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50">
+                                        <button onClick={handleLogout} className="flex items-center w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50" disabled={mutation.isPending}>
                                             <LogOut size={16} className="mr-2" /> Sign Out
                                         </button>
                                     </div>

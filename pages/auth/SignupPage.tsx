@@ -1,40 +1,25 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
-import { User, Briefcase, Building, Mail, Lock, MapPin } from 'lucide-react';
+import { useMutation } from '@tanstack/react-query';
+import { User as UserIcon, Briefcase, Building } from 'lucide-react';
 import { UserRole } from '../../types';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
 import { cn } from '../../lib/utils';
 import useAuth from '../../hooks/useAuth';
-
-// Mock API call
-const mockSignUp = async (data: any): Promise<{ user: any, token: string }> => {
-    console.log("Signing up with", data);
-    await new Promise(res => setTimeout(res, 1000));
-    return {
-        user: {
-            id: '2',
-            email: data.email,
-            fullName: data.fullName,
-            role: data.role,
-            companyName: data.companyName || undefined,
-            location: data.location
-        },
-        token: 'mock-new-jwt-token'
-    };
-};
+import { signUp } from '../../services/authService';
+import Spinner from '../../components/ui/Spinner';
 
 const SignupPage: React.FC = () => {
-    const { register, handleSubmit, setValue, watch, formState: { errors, isSubmitting } } = useForm({
+    const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm({
         defaultValues: {
             role: UserRole.CANDIDATE
         }
     });
     const { login } = useAuth();
     const navigate = useNavigate();
-    const [apiError, setApiError] = React.useState<string | null>(null);
 
     const selectedRole = watch('role');
 
@@ -42,17 +27,20 @@ const SignupPage: React.FC = () => {
         register('role', { required: true });
     }, [register]);
 
-    const onSubmit = async (data: any) => {
-        setApiError(null);
-        try {
-            const { user, token } = await mockSignUp(data);
+    const mutation = useMutation({
+        mutationFn: signUp,
+        onSuccess: ({ user, token }) => {
             login(user, token);
             const redirectPath = user.role === UserRole.CANDIDATE ? '/candidate/dashboard' : '/employer/dashboard';
             navigate(redirectPath);
-        } catch (error) {
-            setApiError("Could not create account. Please try again.");
-        }
+        },
+    });
+
+    const onSubmit = (data: any) => {
+        mutation.mutate(data);
     };
+
+    const apiError = mutation.error ? (mutation.error as any).response?.data?.error || "Could not create account. Please try again." : null;
 
     return (
          <div className="min-h-screen bg-neutral-50 flex items-center justify-center p-4">
@@ -80,7 +68,7 @@ const SignupPage: React.FC = () => {
                                         "border-neutral-300 hover:border-primary-400": selectedRole !== UserRole.CANDIDATE
                                     })}
                                 >
-                                    <User className="mx-auto mb-2 h-6 w-6 text-primary-600" />
+                                    <UserIcon className="mx-auto mb-2 h-6 w-6 text-primary-600" />
                                     <p className="font-semibold">Candidate</p>
                                     <p className="text-xs text-neutral-500">Looking for a job</p>
                                 </div>
@@ -106,8 +94,8 @@ const SignupPage: React.FC = () => {
                         <Input type="email" placeholder="Email Address" {...register('email', { required: 'Email is required' })} />
                         <Input type="password" placeholder="Password" {...register('password', { required: 'Password is required' })} />
                         
-                        <Button type="submit" className="w-full" disabled={isSubmitting}>
-                            {isSubmitting ? 'Creating Account...' : 'Create Account'}
+                        <Button type="submit" className="w-full" disabled={mutation.isPending}>
+                            {mutation.isPending ? <><Spinner size="sm" className="mr-2"/> Creating Account...</> : 'Create Account'}
                         </Button>
                     </form>
                     <p className="mt-6 text-center text-sm text-neutral-500">

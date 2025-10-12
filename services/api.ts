@@ -14,7 +14,10 @@ import axios from 'axios';
 import useAuthStore from '../store/authStore';
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api',
+  // Fix: Use optional chaining (?.) to safely access `import.meta.env`.
+  // This prevents runtime errors if `env` is undefined, which is the case
+  // in environments that don't inject environment variables via a build tool like Vite.
+  baseURL: (import.meta as any)?.env?.VITE_API_BASE_URL || 'http://localhost:3000/api',
 });
 
 api.interceptors.request.use(
