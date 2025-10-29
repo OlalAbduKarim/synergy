@@ -1,8 +1,9 @@
+
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { MapPin, Briefcase, Search } from 'lucide-react';
-
+import useAuth from '../../hooks/useAuth';
 import Card, { CardContent } from '../../components/ui/Card';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
@@ -11,6 +12,7 @@ import { Job, WorkType, EmploymentType } from '../../types';
 import SynergyScore from '../../components/jobs/SynergyScore';
 
 const JobListPage: React.FC = () => {
+    const { isAuthenticated } = useAuth();
     // Mock query for jobs
     const { data: jobs, isLoading } = useQuery({
         queryKey: ['jobs'],
@@ -63,7 +65,7 @@ const JobListPage: React.FC = () => {
                                                 <span className="flex items-center"><Briefcase size={14} className="mr-1.5" /> {job.employmentType}</span>
                                             </div>
                                         </div>
-                                        {job.synergyScore && <SynergyScore score={job.synergyScore} />}
+                                        {isAuthenticated && job.synergyScore && <SynergyScore score={job.synergyScore} />}
                                     </div>
                                 </CardContent>
                             </Link>

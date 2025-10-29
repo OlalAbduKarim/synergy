@@ -64,7 +64,7 @@ const App: React.FC = () => {
   }
 
   const getHomeRoute = () => {
-    if (!isAuthenticated || !user) return '/signin';
+    if (!isAuthenticated || !user) return '/jobs';
     return user.role === UserRole.CANDIDATE ? '/candidate/dashboard' : '/employer/dashboard';
   };
 
@@ -77,6 +77,10 @@ const App: React.FC = () => {
         <Route element={<MainLayout />}>
           <Route path="/" element={<Navigate to={getHomeRoute()} replace />} />
           
+          {/* Public Routes */}
+          <Route path="/jobs" element={<JobListPage />} />
+          <Route path="/jobs/:jobId" element={<JobDetailPage />} />
+
           {/* Candidate Routes */}
           <Route element={<ProtectedRoute allowedRoles={[UserRole.CANDIDATE]} />}>
             <Route path="/candidate/dashboard" element={<CandidateDashboardPage />} />
@@ -96,8 +100,6 @@ const App: React.FC = () => {
 
           {/* Shared Authenticated Routes */}
           <Route element={<ProtectedRoute allowedRoles={[UserRole.CANDIDATE, UserRole.EMPLOYER]} />}>
-            <Route path="/jobs" element={<JobListPage />} />
-            <Route path="/jobs/:jobId" element={<JobDetailPage />} />
             <Route path="/messages" element={<MessagesPage />} />
             <Route path="/notifications" element={<NotificationsPage />} />
           </Route>

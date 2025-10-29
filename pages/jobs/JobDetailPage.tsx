@@ -1,5 +1,6 @@
+
 import React from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, MapPin, Briefcase, Clock, Check } from 'lucide-react';
 import useAuth from '../../hooks/useAuth';
@@ -46,8 +47,9 @@ const mockJob: Job = {
 
 const JobDetailPage: React.FC = () => {
     const { jobId } = useParams<{ jobId: string }>();
-    const { user } = useAuth();
+    const { user, isAuthenticated } = useAuth();
     const queryClient = useQueryClient();
+    const navigate = useNavigate();
 
     // Mock query for a single job
     const { data: job, isLoading } = useQuery({
@@ -74,6 +76,13 @@ const JobDetailPage: React.FC = () => {
     if (!job) return <div className="text-center">Job not found.</div>;
     
     const renderActionButtons = () => {
+        if (!isAuthenticated) {
+            return (
+                <Button className="w-full mt-4" onClick={() => navigate('/signin')}>
+                    Sign In to Apply
+                </Button>
+            );
+        }
         if (user?.role === UserRole.CANDIDATE) {
              return (
                 <Button 
@@ -132,11 +141,19 @@ const JobDetailPage: React.FC = () => {
                 <div className="space-y-6">
                     <Card>
                         <CardHeader className="text-center">
-                            <h3 className="text-lg font-semibold">Synergy Score</h3>
+                            <h3 className="text-lg font-semibold">{isAuthenticated ? 'Synergy Score' : 'Ready to Apply?'}</h3>
                         </CardHeader>
                         <CardContent className="flex flex-col items-center">
-                            {job.synergyScore && <SynergyScore score={job.synergyScore} size="lg" />}
-                            <p className="text-center text-sm text-neutral-500 mt-2">Your profile is a strong match for this role.</p>
+                             {isAuthenticated && job.synergyScore ? (
+                                <>
+                                    <SynergyScore score={job.synergyScore} size="lg" />
+                                    <p className="text-center text-sm text-neutral-500 mt-2">Your profile is a strong match for this role.</p>
+                                </>
+                            ) : (
+                                <p className="text-center text-sm text-neutral-500 mt-2">
+                                    {isAuthenticated ? 'Synergy Score not available.' : 'Sign in or create an account to see your Synergy Score and apply for this job.'}
+                                </p>
+                            )}
                             {renderActionButtons()}
                         </CardContent>
                     </Card>
